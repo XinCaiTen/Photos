@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+.env.local
+.wrangler/
+*.tsbuildinfo
+
+# Wrangler local secrets (never commit)
+.dev.vars

@@ -12,7 +12,7 @@ interface Props {
 }
 
 const ImageCard: React.FC<Props> = ({
-  image, index, onView, onDelete,
+  image, index, onView,
   selectionMode, selected, onToggleSelect,
 }) => {
   const [loaded, setLoaded] = useState(false);

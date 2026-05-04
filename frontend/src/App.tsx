@@ -4,7 +4,6 @@ import type { ImageItem, UploadingFile, ToastMessage, Theme } from './types';
 import { fetchImages, uploadImage, deleteImage, downloadImageById } from './api';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
-import UploadZone from './components/UploadZone';
 import Gallery from './components/Gallery';
 import LightboxModal from './components/LightboxModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';

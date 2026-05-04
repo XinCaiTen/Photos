@@ -6,6 +6,18 @@ export interface ImageItem {
   createdAt: string;
 }
 
+export interface Album {
+  id: string;
+  name: string;
+  imageIds: string[];
+  createdAt: string;
+}
+
+export type SortOption = 'newest' | 'oldest' | 'month';
+
+/** 'all' | 'favorites' | albumId */
+export type View = string;
+
 export interface UploadingFile {
   file: File;
   progress: number;

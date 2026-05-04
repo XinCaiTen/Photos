@@ -721,3 +721,189 @@ a { color: inherit; text-decoration: none; }
   white-space: nowrap;
   border: 0;
 }
+
+/* ─── Sort Dropdown ──────────────────────────────────────────── */
+.sort-dropdown-wrapper {
+  position: relative;
+}
+.sort-dropdown-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color var(--transition);
+}
+.sort-dropdown-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.sort-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: var(--bg-modal);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  z-index: 50;
+  min-width: 130px;
+  overflow: hidden;
+}
+.sort-dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+  cursor: pointer;
+}
+.sort-dropdown-item:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+.sort-dropdown-item.active { color: var(--accent-primary); background: rgba(91,88,235,0.08); }
+
+/* ─── Month Picker ───────────────────────────────────────────── */
+.month-picker {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+}
+.month-picker:focus { border-color: var(--accent-primary); }
+
+/* ─── Albums Sidebar ─────────────────────────────────────────── */
+.sidebar-albums {
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+.sidebar-albums-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.sidebar-add-album-btn {
+  color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+.sidebar-add-album-btn:hover { color: var(--accent-primary); background: rgba(91,88,235,0.1); }
+.sidebar-album-list { display: flex; flex-direction: column; gap: 2px; }
+.album-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  position: relative;
+}
+.album-nav-item:hover { background: var(--bg-card); color: var(--text-primary); }
+.album-nav-item.active { background: var(--bg-card); color: var(--accent-primary); }
+.album-nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+.album-nav-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.album-nav-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-app);
+  border-radius: 10px;
+  padding: 1px 6px;
+}
+.album-delete-btn {
+  display: none;
+  color: var(--danger);
+  padding: 2px;
+  border-radius: 4px;
+}
+.album-nav-item:hover .album-delete-btn { display: flex; align-items: center; }
+.album-delete-btn svg { width: 13px; height: 13px; }
+.album-name-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--accent-primary);
+  border-radius: 6px;
+  padding: 7px 10px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+
+/* ─── Rename in Lightbox ─────────────────────────────────────── */
+.rename-input {
+  background: var(--bg-input);
+  border: 1px solid var(--accent-primary);
+  border-radius: 6px;
+  padding: 5px 10px;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  min-width: 200px;
+}
+.rename-confirm-btn {
+  background: var(--accent-primary);
+  color: #fff;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.rename-confirm-btn:hover { background: var(--accent-hover); }
+.rename-cancel-btn {
+  color: var(--text-muted);
+  padding: 5px 8px;
+  font-size: 14px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.rename-cancel-btn:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+
+/* ─── Favorite button in Lightbox ────────────────────────────── */
+.btn-favorite {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+  background: transparent;
+}
+.btn-favorite:hover { background: var(--bg-card-hover); border-color: var(--border-hover); }
+
+/* ─── Favorite badge on ImageCard ────────────────────────────── */
+.image-card-favorite {
+  position: absolute;
+  bottom: 10px; right: 10px;
+  font-size: 14px;
+  z-index: 2;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+  pointer-events: none;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}

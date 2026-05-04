@@ -1,5 +1,5 @@
-import React from 'react';
-import type { ImageItem } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import type { ImageItem, SortOption, Album, View } from '../types';
 import ImageCard from './ImageCard';
 import EmptyState from './EmptyState';
 
@@ -8,82 +8,100 @@ interface Props {
   loading: boolean;
   selectionMode: boolean;
   selectedIds: Set<string>;
+  favoriteIds: Set<string>;
+  albums: Album[];
+  currentView: View;
+  sortOption: SortOption;
+  selectedMonth: string;
   onView: (index: number) => void;
-  onDelete: (image: ImageItem) => void; // Maybe unused directly from card now, kept for compatibility if needed elsewhere
+  onDelete: (image: ImageItem) => void;
   onToggleSelect: (id: string) => void;
   onToggleSelectMode: () => void;
   onUploadClick: () => void;
+  onSortChange: (sort: SortOption) => void;
+  onMonthChange: (month: string) => void;
 }
 
 const SKELETON_COUNT = 12;
 
 const ChevronDown = () => (
-  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ width: 16, height: 16 }}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
   </svg>
 );
 
-const GridIcon = () => (
-  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{width:18, height:18}}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-  </svg>
-);
-
-const ListIcon = () => (
-  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{width:18, height:18}}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-  </svg>
-);
-
 const Gallery: React.FC<Props> = ({
-  images, loading,
-  selectionMode, selectedIds,
+  images, loading, selectionMode, selectedIds, favoriteIds, albums,
+  currentView, sortOption, selectedMonth,
   onView, onDelete, onToggleSelect, onToggleSelectMode, onUploadClick,
+  onSortChange, onMonthChange,
 }) => {
+  const [sortOpen, setSortOpen] = useState(false);
+  const sortRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (sortRef.current && !sortRef.current.contains(e.target as Node)) setSortOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const viewTitle = currentView === 'all' ? 'All Photos'
+    : currentView === 'favorites' ? '❤️ Favorites'
+    : albums.find(a => a.id === currentView)?.name ?? 'Album';
+
+  const sortLabel = sortOption === 'newest' ? 'Mới nhất' : sortOption === 'oldest' ? 'Cũ nhất' : 'Theo tháng';
+
   if (loading) {
     return (
       <div>
         <div className="gallery-toolbar">
-          <div className="gallery-title-group">
-            <h1>All Photos <ChevronDown /></h1>
-            <div className="gallery-subtitle">Đang tải...</div>
-          </div>
+          <div className="gallery-title-group"><h1>All Photos <ChevronDown /></h1><div className="gallery-subtitle">Đang tải...</div></div>
         </div>
-        <div className="gallery-grid">
-          {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
-            <div key={i} className="skeleton" id={`skeleton-${i}`} />
-          ))}
-        </div>
+        <div className="gallery-grid">{Array.from({ length: SKELETON_COUNT }).map((_, i) => <div key={i} className="skeleton" id={`skeleton-${i}`} />)}</div>
       </div>
     );
   }
 
-  if (images.length === 0) {
-    return <EmptyState onUploadClick={onUploadClick} />;
-  }
+  if (images.length === 0) return <EmptyState onUploadClick={onUploadClick} />;
 
   return (
     <div>
       <div className="gallery-toolbar">
         <div className="gallery-title-group">
-          <h1>{selectionMode ? 'Chế độ chọn' : 'All Photos'} <ChevronDown /></h1>
-          <div className="gallery-subtitle">{images.length} photos</div>
+          <h1>{selectionMode ? 'Chế độ chọn' : viewTitle} <ChevronDown /></h1>
+          <div className="gallery-subtitle">{images.length} ảnh</div>
         </div>
 
         <div className="gallery-controls">
-          <button 
-            className={`btn-select ${selectionMode ? 'active' : ''}`}
-            onClick={onToggleSelectMode}
-          >
-            {selectionMode ? 'Cancel Select' : 'Select'}
+          <button className={`btn-select ${selectionMode ? 'active' : ''}`} onClick={onToggleSelectMode}>
+            {selectionMode ? 'Hủy chọn' : 'Chọn'}
           </button>
-          <div className="sort-dropdown">
-            Sort by: Newest <ChevronDown />
+
+          {/* Sort dropdown */}
+          <div className="sort-dropdown-wrapper" ref={sortRef}>
+            <button className="sort-dropdown-btn" onClick={() => setSortOpen(o => !o)}>
+              {sortLabel} <ChevronDown />
+            </button>
+            {sortOpen && (
+              <div className="sort-dropdown-menu">
+                {(['newest', 'oldest', 'month'] as SortOption[]).map(opt => (
+                  <button key={opt} className={`sort-dropdown-item ${sortOption === opt ? 'active' : ''}`}
+                    onClick={() => { onSortChange(opt); setSortOpen(false); }}>
+                    {opt === 'newest' ? 'Mới nhất' : opt === 'oldest' ? 'Cũ nhất' : 'Theo tháng'}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-          <div className="view-toggles">
-            <button className="view-toggle-btn active"><GridIcon /></button>
-            <button className="view-toggle-btn"><ListIcon /></button>
-          </div>
+
+          {sortOption === 'month' && (
+            <input
+              type="month"
+              className="month-picker"
+              value={selectedMonth}
+              onChange={e => onMonthChange(e.target.value)}
+            />
+          )}
         </div>
       </div>
 
@@ -97,6 +115,7 @@ const Gallery: React.FC<Props> = ({
             onDelete={() => onDelete(img)}
             selectionMode={selectionMode}
             selected={selectedIds.has(img.id)}
+            isFavorite={favoriteIds.has(img.id)}
             onToggleSelect={() => onToggleSelect(img.id)}
           />
         ))}

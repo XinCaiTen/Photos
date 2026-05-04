@@ -134,3 +134,19 @@ Dùng **Cloudflare free tier**:
 
 Danh sách ảnh được lưu trong file `metadata.json` ngay trong R2 bucket.
 Không cần database, không cần subscription.
+
+****************************************
+Github
+# Build với URL mới
+cd e:\Code\PhotoStack\frontend
+npm run build
+
+# Copy vào docs/
+cd e:\Code\PhotoStack
+Remove-Item -Recurse -Force docs
+Copy-Item -Recurse frontend\dist docs
+
+# Push lên GitHub
+git add docs/
+git commit -m "deploy: rebuild with VITE_WORKER_URL"
+git push

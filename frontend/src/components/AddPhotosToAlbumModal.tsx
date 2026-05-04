@@ -8,10 +8,7 @@ interface Props {
   onAdd: (imageIds: string[]) => void;
 }
 
-function formatBytes(bytes: number) {
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
+
 
 const AddPhotosToAlbumModal: React.FC<Props> = ({ allImages, album, onClose, onAdd }) => {
   const [selected, setSelected] = useState<Set<string>>(new Set());

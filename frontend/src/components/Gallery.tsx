@@ -47,7 +47,7 @@ const Gallery: React.FC<Props> = ({
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const viewTitle = currentView === 'all' ? 'All Photos'
+  const viewTitle = currentView === 'all' ? 'Tất cả hình ảnh'
     : currentView === 'favorites' ? '❤️ Favorites'
     : albums.find(a => a.id === currentView)?.name ?? 'Album';
 

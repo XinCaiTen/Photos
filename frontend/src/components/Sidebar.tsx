@@ -86,7 +86,7 @@ const Sidebar: React.FC<Props> = ({
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
         </div>
-        <div className="sidebar-logo-text">PicVault</div>
+        <div className="sidebar-logo-text">Stiker vui nhộn</div>
         {onCloseMobile && (
           <button className="mobile-close-btn" onClick={onCloseMobile} style={{ display: 'none', marginLeft: 'auto' }}>
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ width: 24, height: 24 }}>
@@ -197,7 +197,7 @@ const Sidebar: React.FC<Props> = ({
           <div className="storage-progress-fill" style={{ width: `${Math.max(percent, 2)}%` }} />
         </div>
         <button className="btn-outline" onClick={() => alert('Coming soon!')}>
-          <CrownIcon /> Upgrade Storage
+          <CrownIcon /> Đang phát triển
         </button>
       </div>
     </aside>

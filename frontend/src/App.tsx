@@ -13,6 +13,7 @@ import LightboxModal from './components/LightboxModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
 import BulkActionBar from './components/BulkActionBar';
 import MoveToAlbumModal from './components/MoveToAlbumModal';
+import AddPhotosToAlbumModal from './components/AddPhotosToAlbumModal';
 import Toast from './components/Toast';
 
 function genId() { return Math.random().toString(36).slice(2); }
@@ -33,6 +34,8 @@ const App: React.FC = () => {
   const [bulkDownloading, setBulkDownloading] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [showMoveModal, setShowMoveModal] = useState(false);
+  const [showAddPhotosModal, setShowAddPhotosModal] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Search & Sort
   const [searchQuery, setSearchQuery] = useState('');
@@ -263,12 +266,35 @@ const App: React.FC = () => {
 
   const handleUploadClick = () => uploadInputRef.current?.click();
 
+  // Handler for adding multiple photos to current album
+  const handleAddPhotosToAlbum = useCallback(async (imageIds: string[]) => {
+    if (currentView === 'all' || currentView === 'favorites') return;
+    try {
+      const updated = await updateAlbum(currentView, { addImageIds: imageIds });
+      setAlbums(prev => prev.map(a => a.id === currentView ? updated : a));
+      addToast('success', `Đã thêm ${imageIds.length} ảnh vào album`);
+    } catch { addToast('error', 'Không thể thêm ảnh vào album'); }
+  }, [currentView, addToast]);
+
+  // Remove single image from current album (called from ImageCard hover)
+  const handleRemoveSingleFromAlbum = useCallback(async (imageId: string) => {
+    if (currentView === 'all' || currentView === 'favorites') return;
+    try {
+      const updated = await updateAlbum(currentView, { removeImageIds: [imageId] });
+      setAlbums(prev => prev.map(a => a.id === currentView ? updated : a));
+      addToast('info', 'Đã xóa ảnh khỏi album');
+    } catch { addToast('error', 'Không thể xóa ảnh khỏi album'); }
+  }, [currentView, addToast]);
+
   // lightbox uses displayedImages index
   const lightboxImage = lightboxIndex !== null ? displayedImages[lightboxIndex] : null;
   const isFavorite = lightboxImage ? favoriteIds.has(lightboxImage.id) : false;
 
   return (
     <div className="app-layout">
+      {mobileMenuOpen && (
+        <div className="sidebar-backdrop" onClick={() => setMobileMenuOpen(false)} />
+      )}
       <Sidebar
         totalSize={totalStorage}
         uploadingFiles={uploadingFiles}
@@ -280,6 +306,8 @@ const App: React.FC = () => {
         onCreateAlbum={handleCreateAlbum}
         onDeleteAlbum={handleDeleteAlbum}
         favoriteCount={favoriteIds.size}
+        mobileOpen={mobileMenuOpen}
+        onCloseMobile={() => setMobileMenuOpen(false)}
       />
 
       <main className="app-main">
@@ -289,6 +317,7 @@ const App: React.FC = () => {
           onUploadClick={handleUploadClick}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          onToggleMobileMenu={() => setMobileMenuOpen(true)}
         />
 
         <div className="content-area">
@@ -322,6 +351,8 @@ const App: React.FC = () => {
             onUploadClick={handleUploadClick}
             onSortChange={setSortOption}
             onMonthChange={setSelectedMonth}
+            onAddPhotosToAlbum={() => setShowAddPhotosModal(true)}
+            onRemoveFromAlbum={handleRemoveSingleFromAlbum}
           />
         </div>
       </main>
@@ -361,6 +392,18 @@ const App: React.FC = () => {
           onMove={handleMoveToAlbum}
         />
       )}
+
+      {showAddPhotosModal && currentView !== 'all' && currentView !== 'favorites' && (() => {
+        const album = albums.find(a => a.id === currentView);
+        return album ? (
+          <AddPhotosToAlbumModal
+            allImages={images}
+            album={album}
+            onClose={() => setShowAddPhotosModal(false)}
+            onAdd={handleAddPhotosToAlbum}
+          />
+        ) : null;
+      })()}
 
       <Toast toasts={toasts} onRemove={removeToast} />
     </div>

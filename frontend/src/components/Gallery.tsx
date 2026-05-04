@@ -20,6 +20,8 @@ interface Props {
   onUploadClick: () => void;
   onSortChange: (sort: SortOption) => void;
   onMonthChange: (month: string) => void;
+  onAddPhotosToAlbum: () => void;
+  onRemoveFromAlbum: (imageId: string) => void;
 }
 
 const SKELETON_COUNT = 12;
@@ -34,7 +36,7 @@ const Gallery: React.FC<Props> = ({
   images, loading, selectionMode, selectedIds, favoriteIds, albums,
   currentView, sortOption, selectedMonth,
   onView, onDelete, onToggleSelect, onToggleSelectMode, onUploadClick,
-  onSortChange, onMonthChange,
+  onSortChange, onMonthChange, onAddPhotosToAlbum, onRemoveFromAlbum,
 }) => {
   const [sortOpen, setSortOpen] = useState(false);
   const sortRef = useRef<HTMLDivElement>(null);
@@ -73,6 +75,13 @@ const Gallery: React.FC<Props> = ({
         </div>
 
         <div className="gallery-controls">
+          {/* Add photos button — only when viewing a specific album */}
+          {currentView !== 'all' && currentView !== 'favorites' && (
+            <button className="btn-select" onClick={onAddPhotosToAlbum} style={{ background: 'var(--accent-primary)', color: '#fff', borderColor: 'var(--accent-primary)' }}>
+              + Thêm ảnh
+            </button>
+          )}
+
           <button className={`btn-select ${selectionMode ? 'active' : ''}`} onClick={onToggleSelectMode}>
             {selectionMode ? 'Hủy chọn' : 'Chọn'}
           </button>
@@ -117,6 +126,11 @@ const Gallery: React.FC<Props> = ({
             selected={selectedIds.has(img.id)}
             isFavorite={favoriteIds.has(img.id)}
             onToggleSelect={() => onToggleSelect(img.id)}
+            onRemoveFromAlbum={
+              currentView !== 'all' && currentView !== 'favorites'
+                ? () => onRemoveFromAlbum(img.id)
+                : undefined
+            }
           />
         ))}
       </div>

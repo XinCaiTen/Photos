@@ -48,6 +48,8 @@ interface Props {
   onCreateAlbum: (name: string) => void;
   onDeleteAlbum: (albumId: string) => void;
   favoriteCount: number;
+  mobileOpen?: boolean;
+  onCloseMobile?: () => void;
 }
 
 function formatBytes(bytes: number) {
@@ -59,6 +61,7 @@ function formatBytes(bytes: number) {
 const Sidebar: React.FC<Props> = ({
   totalSize, uploadingFiles, onFilesSelected, uploadInputRef,
   currentView, onViewChange, albums, onCreateAlbum, onDeleteAlbum, favoriteCount,
+  mobileOpen, onCloseMobile,
 }) => {
   const [creatingAlbum, setCreatingAlbum] = useState(false);
   const [newAlbumName, setNewAlbumName] = useState('');
@@ -75,7 +78,7 @@ const Sidebar: React.FC<Props> = ({
   };
 
   return (
-    <aside className="app-sidebar">
+    <aside className={`app-sidebar ${mobileOpen ? 'open' : ''}`}>
       <div className="sidebar-logo">
         <div className="sidebar-logo-icon">
           <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
@@ -84,15 +87,22 @@ const Sidebar: React.FC<Props> = ({
           </svg>
         </div>
         <div className="sidebar-logo-text">PicVault</div>
+        {onCloseMobile && (
+          <button className="mobile-close-btn" onClick={onCloseMobile} style={{ display: 'none', marginLeft: 'auto' }}>
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ width: 24, height: 24 }}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
       </div>
 
       <nav className="sidebar-nav">
         <a href="#" className={`nav-item ${currentView === 'all' ? 'active' : ''}`}
-          onClick={e => { e.preventDefault(); onViewChange('all'); }}>
+          onClick={e => { e.preventDefault(); onViewChange('all'); onCloseMobile?.(); }}>
           <GalleryIcon /> Gallery
         </a>
         <a href="#" className={`nav-item ${currentView === 'favorites' ? 'active' : ''}`}
-          onClick={e => { e.preventDefault(); onViewChange('favorites'); }}>
+          onClick={e => { e.preventDefault(); onViewChange('favorites'); onCloseMobile?.(); }}>
           <HeartIcon filled={currentView === 'favorites'} /> Favorites
           {favoriteCount > 0 && (
             <span style={{ marginLeft: 'auto', fontSize: 11, background: 'var(--accent-primary)', color: '#fff', borderRadius: 10, padding: '1px 7px' }}>
@@ -128,7 +138,7 @@ const Sidebar: React.FC<Props> = ({
         <div className="sidebar-album-list">
           {albums.map(album => (
             <div key={album.id} className={`album-nav-item ${currentView === album.id ? 'active' : ''}`}
-              onClick={() => onViewChange(album.id)}>
+              onClick={() => { onViewChange(album.id); onCloseMobile?.(); }}>
               <FolderIcon />
               <span className="album-nav-name">{album.name}</span>
               <span className="album-nav-count">{album.imageIds.length}</span>

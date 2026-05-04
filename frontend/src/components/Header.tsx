@@ -6,6 +6,7 @@ interface Props {
   onUploadClick: () => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
+  onToggleMobileMenu?: () => void;
 }
 
 const SearchIcon = () => (
@@ -29,11 +30,21 @@ const SunIcon = () => (
   </svg>
 );
 
-const Header: React.FC<Props> = ({ theme, onToggleTheme, onUploadClick, searchQuery, onSearchChange }) => (
+const MenuIcon = () => (
+  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ width: 24, height: 24 }}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+  </svg>
+);
+
+const Header: React.FC<Props> = ({ theme, onToggleTheme, onUploadClick, searchQuery, onSearchChange, onToggleMobileMenu }) => (
   <header className="header">
-    <div className="search-bar">
-      <SearchIcon />
-      <input
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
+      <button className="mobile-menu-btn" onClick={onToggleMobileMenu} style={{ display: 'none' }}>
+        <MenuIcon />
+      </button>
+      <div className="search-bar">
+        <SearchIcon />
+        <input
         type="text"
         placeholder="Tìm kiếm theo tên ảnh..."
         value={searchQuery}
@@ -43,6 +54,7 @@ const Header: React.FC<Props> = ({ theme, onToggleTheme, onUploadClick, searchQu
       {searchQuery && (
         <button onClick={() => onSearchChange('')} style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1 }}>✕</button>
       )}
+      </div>
     </div>
 
     <div className="header-actions">

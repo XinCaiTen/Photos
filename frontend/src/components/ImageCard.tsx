@@ -10,11 +10,12 @@ interface Props {
   selected: boolean;
   isFavorite: boolean;
   onToggleSelect: () => void;
+  onRemoveFromAlbum?: () => void; // only passed when viewing an album
 }
 
 const ImageCard: React.FC<Props> = ({
   image, index, onView,
-  selectionMode, selected, isFavorite, onToggleSelect,
+  selectionMode, selected, isFavorite, onToggleSelect, onRemoveFromAlbum,
 }) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
@@ -47,6 +48,17 @@ const ImageCard: React.FC<Props> = ({
       {/* Favorite badge */}
       {isFavorite && !selectionMode && (
         <div className="image-card-favorite">❤️</div>
+      )}
+
+      {/* Remove from album button */}
+      {onRemoveFromAlbum && !selectionMode && (
+        <button
+          className="image-card-remove-album"
+          onClick={e => { e.stopPropagation(); onRemoveFromAlbum(); }}
+          title="Xóa khỏi album"
+        >
+          ✕
+        </button>
       )}
 
       {/* Selection checkbox */}

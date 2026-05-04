@@ -150,7 +150,7 @@ const LightboxModal: React.FC<Props> = ({
                   onClick={() => setAlbumMenuOpen(o => !o)}
                   id="btn-lightbox-album"
                 >
-                  📁 Album {currentAlbumIds.length > 0 && `(${currentAlbumIds.length})`}
+                  📁 Thêm vào Album {currentAlbumIds.length > 0 && `(${currentAlbumIds.length})`}
                 </button>
                 {albumMenuOpen && (
                   <div className="sort-dropdown-menu" style={{ bottom: 'calc(100% + 4px)', top: 'auto', minWidth: 180 }}>

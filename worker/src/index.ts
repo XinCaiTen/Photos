@@ -74,6 +74,14 @@ export default {
       /* ── GET /images ─────────────────────────────────────── */
       if (request.method === 'GET' && pathname === '/images') {
         const meta = await readJson<Metadata>(env.BUCKET, METADATA_KEY, { images: [] });
+        const base = (env.PUBLIC_URL || '').replace(/\/+$/, '');
+        // Auto-fix broken URLs
+        let fixed = false;
+        for (const img of meta.images) {
+          const correctUrl = `${base}/${img.id}`;
+          if (img.url !== correctUrl) { img.url = correctUrl; fixed = true; }
+        }
+        if (fixed) await writeJson(env.BUCKET, METADATA_KEY, meta);
         return json(meta.images, 200, cors);
       }
 
@@ -109,8 +117,9 @@ export default {
           httpMetadata: { contentType: file.type, cacheControl: 'public, max-age=31536000' },
         });
 
+        const uploadBase = (env.PUBLIC_URL || '').replace(/\/+$/, '');
         const imageMeta: ImageMeta = {
-          id: key, url: `${env.PUBLIC_URL}/${key}`,
+          id: key, url: `${uploadBase}/${key}`,
           name: file.name, size: file.size, createdAt: new Date().toISOString(),
         };
         const meta = await readJson<Metadata>(env.BUCKET, METADATA_KEY, { images: [] });

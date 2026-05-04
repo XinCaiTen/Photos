@@ -137,16 +137,18 @@ Không cần database, không cần subscription.
 
 ****************************************
 Github
-# Build với URL mới
+# 1.Build với URL mới
 cd e:\Code\PhotoStack\frontend
 npm run build
-
-# Copy vào docs/
+# 2. Deploy Worker mới
+cd e:\Code\PhotoStack\worker
+npx wrangler deploy
+# 3. Copy vào docs/
 cd e:\Code\PhotoStack
 Remove-Item -Recurse -Force docs
 Copy-Item -Recurse frontend\dist docs
 
-# Push lên GitHub
+# 4. Push lên GitHub
 git add docs/
 git commit -m "deploy: rebuild with VITE_WORKER_URL"
 git push

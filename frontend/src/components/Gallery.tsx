@@ -1,7 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { FixedSizeGrid as Grid } from 'react-window';
 import type { ImageItem, SortOption, Album, View } from '../types';
 import ImageCard from './ImageCard';
 import EmptyState from './EmptyState';
+
+const MIN_COL_WIDTH = 180;
+const GAP = 12;
 
 interface Props {
   images: ImageItem[];
@@ -32,7 +36,29 @@ const ChevronDown = () => (
   </svg>
 );
 
-const Gallery: React.FC<Props> = ({
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
+  constructor(props: {children: React.ReactNode}) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: 20, color: 'red', background: '#fee' }}>
+          <h2>Gallery Crash:</h2>
+          <pre>{this.state.error?.message}</pre>
+          <pre>{this.state.error?.stack}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const GalleryInner: React.FC<Props> = ({
   images, loading, selectionMode, selectedIds, favoriteIds, albums,
   currentView, sortOption, selectedMonth,
   onView, onDelete, onToggleSelect, onToggleSelectMode, onUploadClick,
@@ -49,9 +75,39 @@ const Gallery: React.FC<Props> = ({
 
   const viewTitle = currentView === 'all' ? 'Tất cả hình ảnh'
     : currentView === 'favorites' ? '❤️ Favorites'
-    : albums.find(a => a.id === currentView)?.name ?? 'Album';
+      : albums.find(a => a.id === currentView)?.name ?? 'Album';
 
   const sortLabel = sortOption === 'newest' ? 'Mới nhất' : sortOption === 'oldest' ? 'Cũ nhất' : 'Theo tháng';
+
+  const Cell = useCallback(({ columnIndex, rowIndex, style, data }: {
+    columnIndex: number; rowIndex: number;
+    style: React.CSSProperties;
+    data: { colCount: number; itemSize: number };
+  }) => {
+    const { colCount } = data;
+    const idx = rowIndex * colCount + columnIndex;
+    if (idx >= images.length) return null;
+    const img = images[idx];
+    return (
+      <div style={{ ...style, boxSizing: 'border-box', paddingLeft: GAP, paddingTop: GAP }}>
+        <ImageCard
+          image={img}
+          index={idx}
+          onView={() => onView(idx)}
+          onDelete={() => onDelete(img)}
+          selectionMode={selectionMode}
+          selected={selectedIds.has(img.id)}
+          isFavorite={favoriteIds.has(img.id)}
+          onToggleSelect={() => onToggleSelect(img.id)}
+          onRemoveFromAlbum={
+            currentView !== 'all' && currentView !== 'favorites'
+              ? () => onRemoveFromAlbum(img.id)
+              : undefined
+          }
+        />
+      </div>
+    );
+  }, [images, selectionMode, selectedIds, favoriteIds, currentView, onView, onDelete, onToggleSelect, onRemoveFromAlbum]);
 
   if (loading) {
     return (
@@ -66,8 +122,24 @@ const Gallery: React.FC<Props> = ({
 
   if (images.length === 0) return <EmptyState onUploadClick={onUploadClick} />;
 
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    if (!wrapperRef.current) return;
+    const observer = new ResizeObserver(entries => {
+      if (!entries[0]) return;
+      const { width, height } = entries[0].contentRect;
+      setSize({ width, height });
+    });
+    observer.observe(wrapperRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const { width, height } = size;
+
   return (
-    <div>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       <div className="gallery-toolbar">
         <div className="gallery-title-group">
           <h1>{selectionMode ? 'Chế độ chọn' : viewTitle} <ChevronDown /></h1>
@@ -75,7 +147,6 @@ const Gallery: React.FC<Props> = ({
         </div>
 
         <div className="gallery-controls">
-          {/* Add photos button — only when viewing a specific album */}
           {currentView !== 'all' && currentView !== 'favorites' && (
             <button className="btn-select" onClick={onAddPhotosToAlbum} style={{ background: 'var(--accent-primary)', color: '#fff', borderColor: 'var(--accent-primary)' }}>
               + Thêm ảnh
@@ -86,7 +157,6 @@ const Gallery: React.FC<Props> = ({
             {selectionMode ? 'Hủy chọn' : 'Chọn'}
           </button>
 
-          {/* Sort dropdown */}
           <div className="sort-dropdown-wrapper" ref={sortRef}>
             <button className="sort-dropdown-btn" onClick={() => setSortOpen(o => !o)}>
               {sortLabel} <ChevronDown />
@@ -114,28 +184,35 @@ const Gallery: React.FC<Props> = ({
         </div>
       </div>
 
-      <div className="gallery-grid" id="gallery-grid">
-        {images.map((img, index) => (
-          <ImageCard
-            key={img.id}
-            image={img}
-            index={index}
-            onView={() => onView(index)}
-            onDelete={() => onDelete(img)}
-            selectionMode={selectionMode}
-            selected={selectedIds.has(img.id)}
-            isFavorite={favoriteIds.has(img.id)}
-            onToggleSelect={() => onToggleSelect(img.id)}
-            onRemoveFromAlbum={
-              currentView !== 'all' && currentView !== 'favorites'
-                ? () => onRemoveFromAlbum(img.id)
-                : undefined
-            }
-          />
-        ))}
+      <div ref={wrapperRef} style={{ flex: 1, minHeight: 0, marginTop: GAP }}>
+        {width > 0 && height > 0 && (() => {
+          const colCount = Math.max(2, Math.floor((width - GAP) / (MIN_COL_WIDTH + GAP)));
+          const itemSize = Math.max(MIN_COL_WIDTH, Math.floor((width - GAP * (colCount + 1)) / colCount));
+          const rowCount = Math.ceil(images.length / colCount);
+          return (
+            <Grid
+              columnCount={colCount}
+              rowCount={rowCount}
+              columnWidth={itemSize + GAP}
+              rowHeight={itemSize + GAP}
+              width={width}
+              height={height}
+              itemData={{ colCount, itemSize }}
+              style={{ overflowX: 'hidden' }}
+            >
+              {Cell}
+            </Grid>
+          );
+        })()}
       </div>
     </div>
   );
 };
 
-export default Gallery;
+export default function Gallery(props: Props) {
+  return (
+    <ErrorBoundary>
+      <GalleryInner {...props} />
+    </ErrorBoundary>
+  );
+}

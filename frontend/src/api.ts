@@ -10,10 +10,41 @@ export async function fetchImages(): Promise<ImageItem[]> {
   return res.json();
 }
 
+// Generate a resized JPEG thumbnail using Canvas
+async function generateThumbnail(file: File, maxSize = 400): Promise<Blob | null> {
+  if (!file.type.startsWith('image/')) return null;
+  return new Promise((resolve) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { resolve(null); return; }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.82);
+    };
+    img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(null); };
+    img.src = objectUrl;
+  });
+}
+
 export function uploadImage(file: File, onProgress: (pct: number) => void): Promise<ImageItem> {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     const formData = new FormData();
     formData.append('file', file);
+
+    // Generate + attach thumbnail (non-blocking if it fails)
+    try {
+      const thumb = await generateThumbnail(file);
+      if (thumb && thumb.size < file.size) {
+        formData.append('thumbnail', new File([thumb], 'thumb.jpg', { type: 'image/jpeg' }));
+      }
+    } catch { /* thumbnail optional — continue without it */ }
+
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${BASE_URL}/upload`);
     xhr.upload.onprogress = (e) => {

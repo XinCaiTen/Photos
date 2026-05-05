@@ -84,13 +84,14 @@ const AddPhotosToAlbumModal: React.FC<Props> = ({ allImages, album, onClose, onA
           ) : (
             filtered.map(img => {
               const isSelected = selected.has(img.id);
+              const displayUrl = img.thumbnailUrl || img.url;
               return (
                 <div
                   key={img.id}
                   className={`add-photo-item${isSelected ? ' selected' : ''}`}
                   onClick={() => toggleSelect(img.id)}
                 >
-                  <img src={img.url} alt={img.name} loading="lazy" />
+                  <img src={displayUrl} alt={img.name} loading="lazy" style={{ objectFit: 'cover' }} />
                   <div className={`add-photo-check${isSelected ? ' checked' : ''}`}>
                     {isSelected && '✓'}
                   </div>

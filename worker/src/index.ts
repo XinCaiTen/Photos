@@ -7,7 +7,12 @@ export interface Env {
 }
 
 interface ImageMeta {
-  id: string; url: string; name: string; size: number; createdAt: string;
+  id: string;
+  url: string;
+  thumbnailUrl?: string;
+  name: string;
+  size: number;
+  createdAt: string;
 }
 interface Metadata { images: ImageMeta[]; }
 interface FavoritesData { ids: string[]; }
@@ -118,8 +123,21 @@ export default {
         });
 
         const uploadBase = (env.PUBLIC_URL || '').replace(/\/+$/, '');
+
+        // Optional thumbnail
+        const thumbFile = formData.get('thumbnail') as File | null;
+        let thumbnailUrl: string | undefined;
+        if (thumbFile) {
+          const thumbKey = `thumbnails/${key.replace('images/', '')}.jpg`;
+          await env.BUCKET.put(thumbKey, await thumbFile.arrayBuffer(), {
+            httpMetadata: { contentType: 'image/jpeg', cacheControl: 'public, max-age=31536000' },
+          });
+          thumbnailUrl = `${uploadBase}/${thumbKey}`;
+        }
+
         const imageMeta: ImageMeta = {
           id: key, url: `${uploadBase}/${key}`,
+          thumbnailUrl,
           name: file.name, size: file.size, createdAt: new Date().toISOString(),
         };
         const meta = await readJson<Metadata>(env.BUCKET, METADATA_KEY, { images: [] });

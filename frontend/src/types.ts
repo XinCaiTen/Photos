@@ -1,6 +1,7 @@
 export interface ImageItem {
   id: string;
   url: string;
+  thumbnailUrl?: string;
   name: string;
   size: number;
   createdAt: string;

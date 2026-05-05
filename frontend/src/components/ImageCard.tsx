@@ -10,10 +10,10 @@ interface Props {
   selected: boolean;
   isFavorite: boolean;
   onToggleSelect: () => void;
-  onRemoveFromAlbum?: () => void; // only passed when viewing an album
+  onRemoveFromAlbum?: () => void;
 }
 
-const ImageCard: React.FC<Props> = ({
+const ImageCard: React.FC<Props> = React.memo(({
   image, index, onView,
   selectionMode, selected, isFavorite, onToggleSelect, onRemoveFromAlbum,
 }) => {
@@ -22,12 +22,15 @@ const ImageCard: React.FC<Props> = ({
 
   const handleClick = () => { if (selectionMode) onToggleSelect(); else onView(); };
 
+  // Use thumbnail if available, otherwise fallback to full image
+  const displayUrl = image.thumbnailUrl || image.url;
+
   return (
     <div
       className={`image-card${selected ? ' selected' : ''}`}
-      style={{ animationDelay: `${Math.min(index * 0.04, 0.5)}s` }}
       id={`image-card-${index}`}
       onClick={handleClick}
+      style={{ width: '100%', height: '100%' }}
     >
       {!loaded && !error && <div className="skeleton" style={{ position: 'absolute', inset: 0, borderRadius: 0 }} />}
 
@@ -38,10 +41,10 @@ const ImageCard: React.FC<Props> = ({
         </div>
       ) : (
         <img
-          src={image.url} alt={image.name} loading="lazy"
+          src={displayUrl} alt={image.name} loading="lazy"
           onLoad={() => setLoaded(true)}
           onError={() => { setError(true); setLoaded(true); }}
-          style={{ opacity: loaded ? 1 : 0, transition: 'opacity 0.3s ease' }}
+          style={{ opacity: loaded ? 1 : 0, transition: 'opacity 0.3s ease', width: '100%', height: '100%', objectFit: 'cover' }}
         />
       )}
 
@@ -70,6 +73,7 @@ const ImageCard: React.FC<Props> = ({
       )}
     </div>
   );
-};
+});
 
+ImageCard.displayName = 'ImageCard';
 export default ImageCard;

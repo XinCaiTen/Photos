@@ -1,6 +1,6 @@
 import type { ImageItem, Album } from './types';
 
-const BASE_URL = (import.meta.env.VITE_WORKER_URL as string) || '';
+const BASE_URL = (import.meta.env.VITE_WORKER_URL as string) || 'https://photostack-worker.duannguyen0901.workers.dev';
 
 // ── Images ───────────────────────────────────────────────────────
 

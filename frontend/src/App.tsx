@@ -127,21 +127,33 @@ const App: React.FC = () => {
     const queue: UploadingFile[] = toUpload.map(f => ({ file: f, progress: 0, status: 'pending' }));
     setUploadingFiles(queue);
 
-    for (let i = 0; i < toUpload.length; i++) {
-      setUploadingFiles(prev => prev.map((item, idx) => idx === i ? { ...item, status: 'uploading' } : item));
-      try {
-        const result = await uploadImage(toUpload[i], (pct) => {
-          setUploadingFiles(prev => prev.map((item, idx) => idx === i ? { ...item, progress: pct } : item));
-        });
-        setUploadingFiles(prev => prev.map((item, idx) => idx === i ? { ...item, status: 'done', progress: 100, result } : item));
-        setImages(prev => [result, ...prev]);
-        addToast('success', `Upload thành công: ${toUpload[i].name}`);
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Upload thất bại';
-        setUploadingFiles(prev => prev.map((item, idx) => idx === i ? { ...item, status: 'error', error: msg } : item));
-        addToast('error', `Lỗi: ${msg}`);
+    const CONCURRENCY_LIMIT = 4;
+    let currentIndex = 0;
+
+    const uploadWorker = async () => {
+      while (true) {
+        const i = currentIndex++;
+        if (i >= toUpload.length) break;
+
+        setUploadingFiles(prev => prev.map((item, idx) => idx === i ? { ...item, status: 'uploading' } : item));
+        try {
+          const result = await uploadImage(toUpload[i], (pct) => {
+            setUploadingFiles(prev => prev.map((item, idx) => idx === i ? { ...item, progress: pct } : item));
+          });
+          setUploadingFiles(prev => prev.map((item, idx) => idx === i ? { ...item, status: 'done', progress: 100, result } : item));
+          setImages(prev => [result, ...prev]);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Upload thất bại';
+          setUploadingFiles(prev => prev.map((item, idx) => idx === i ? { ...item, status: 'error', error: msg } : item));
+          addToast('error', `Lỗi ${toUpload[i].name}: ${msg}`);
+        }
       }
-    }
+    };
+
+    const workers = Array.from({ length: Math.min(CONCURRENCY_LIMIT, toUpload.length) }).map(() => uploadWorker());
+    await Promise.all(workers);
+
+    addToast('success', `Đã tải lên xong ${toUpload.length} ảnh`);
     setTimeout(() => setUploadingFiles([]), 3000);
   }, [images, addToast]);
 
